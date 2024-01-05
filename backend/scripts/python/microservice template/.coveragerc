@@ -1,0 +1,6 @@
+[run]
+# branch = True
+omit =
+    myservice/*_pb2.py
+    myservice/*_pb2_grpc.py
+    tests/*

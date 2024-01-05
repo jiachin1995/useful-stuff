@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages  # type: ignore
 from os import path
-import my_project
+import myservice
 
 
 with open(path.join(".", "README.md"), encoding="utf-8") as f:
@@ -22,8 +22,8 @@ with open("requirements_test.txt", encoding="utf-8") as f:
 
 
 setup(
-    name="my project/service name",
-    version=my_project.__version__,
+    name="myservice",
+    version=myservice.__version__,
     description="my project description",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -31,5 +31,5 @@ setup(
     install_requires=install_requires,
     extras_require=extras_require,
     include_package_data=True,
-    package_data={"my_project": ["resources/*"]}, # images, etc
+    package_data={"myservice": ["resources/*"]}, # images, etc
 )

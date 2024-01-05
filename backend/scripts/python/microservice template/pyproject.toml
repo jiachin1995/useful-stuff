@@ -1,0 +1,7 @@
+[tool.black]
+line_length = 119
+
+[tool.isort]
+profile = "black"
+py_version = "auto"
+line_length = 119

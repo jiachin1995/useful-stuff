@@ -1,0 +1,14 @@
+pytest
+pytest-cov
+pytest-profiling
+pytest-mypy
+pytest-black
+pytest-isort
+pytest-sugar
+pytest-picked
+boto3-stubs[s3]~=1.26.69
+pytest-mock
+types-requests
+types-redis
+types-python-dateutil
+sqlalchemy-utils~=0.41.1
