@@ -10,7 +10,6 @@ from typing import Dict, Any
 
 __all__ = [
     "BASE_DIR",
-    "METER_CONFIG",
     "REDIS_CONFIG",
     "EMAIL_CONFIG",
     "NOTIFIER",
