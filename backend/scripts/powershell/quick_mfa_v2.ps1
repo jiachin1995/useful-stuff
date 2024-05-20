@@ -1,6 +1,6 @@
 $MfaDeviceArn = "arn:aws:iam::298080379523:mfa/JC_phone"
 $OpsProfileName = "jching"
-$DurationInSeconds = 28800
+$DurationInSeconds = 36000
 
 $MfaCode = Read-Host -Prompt 'Please input your MFA code'
 
