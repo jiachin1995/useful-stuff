@@ -1,0 +1,53 @@
+services:
+  postgresql:
+    image: 'docker.io/bitnami/postgresql:16.1.0-debian-11-r16'
+    ports:
+      - '5432:5432'
+    volumes:
+      - 'postgresql_data:/bitnami/postgresql'
+    environment:
+      - POSTGRESQL_USERNAME=jching
+      - POSTGRESQL_PASSWORD=jching_pw
+      - POSTGRESQL_DATABASE=jching_db
+
+  dashboard:
+    depends_on:
+      - postgresql
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: dashboard_image
+#    restart: always
+    container_name: dashboard_container
+    volumes:
+      - '../:/usr/svc/dashboard'
+    environment:
+      DEBUG: "1"
+      TRACING: "1"
+      SWAGGER: "1"
+      AWS_USER_FILE_BUCKET: "dummy_bucket"
+      DB_HOST: postgresql
+      DB_NAME_DASHBOARD: iotp_dashboard
+      DB_NAME_GATEWAY: iotp_gateway
+      DB_USER: brtchip
+      DB_PASSWORD: brtchip
+      REDIS_HOST_RW: redis
+      REDIS_HOST: redis
+      REDIS_PASSWORD: brtchip
+      REDIS_DB_ALERT: "1"
+      REDIS_DB_SUBSCRIBE: "1"
+      REDIS_DB_GATEWAY: "0"
+      PROMETHEUS_INSTANCE: backend/kprom-kube-prometheus-prometheus
+      DEVICE_CHECK_SERIAL: "1"
+      DEVICE_HASH_KEY: "12345678901234567890123456789012"
+    ports:
+      - "8081:8081"
+      - "50060:50060"
+    user: root
+    command: [/bin/bash, "-c", "pip uninstall dashboard --yes && cd ./dashboard && pip install -e .[test] && cd .. && python bin/service.py gen-grpc && /bin/bash"]
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgresql_data:
+    driver: local
