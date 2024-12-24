@@ -29,11 +29,11 @@ services:
       DB_HOST: postgresql
       DB_NAME_DASHBOARD: iotp_dashboard
       DB_NAME_GATEWAY: iotp_gateway
-      DB_USER: brtchip
-      DB_PASSWORD: brtchip
+      DB_USER: jching
+      DB_PASSWORD: jching_pw
       REDIS_HOST_RW: redis
       REDIS_HOST: redis
-      REDIS_PASSWORD: brtchip
+      REDIS_PASSWORD: jching_pw
       REDIS_DB_ALERT: "1"
       REDIS_DB_SUBSCRIBE: "1"
       REDIS_DB_GATEWAY: "0"
