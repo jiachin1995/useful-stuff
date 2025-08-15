@@ -4,33 +4,34 @@ if ($null -eq $service) {
     $service = read-host -Prompt "Please enter name of 'service' to deploy:" 
 }
 $service_dict = [ordered]@{
-    "account" = "account"
-    "account-checker" = "account"
-    "authpoint2" = "authpoint2"
-    "authpoint2-iotptoken" = "authpoint2"
-    "authpoint2-permission" = "authpoint2"
-    "authpoint2-backup" = "authpoint2"
-    "datacollector" = "datacollector"
-    "datacollector-cleaner" = "datacollector"
-    "dashboard" = "dashboard"
-    "event" = "event"
-    "event-actor" = "event"
-    "event-checker" = "event"
-    "event-runner" = "event"
-    "journal" = "journal"
-    "k8sworker" = "k8sworker"
-    "mqtt2tsdb" = "mqtt2tsdb"
-    "mqtt2tsdb-cache" = "mqtt2tsdb"
-    "mqtt2tsdb-cleaner" = "mqtt2tsdb"
-    "mqtt2tsdb-grpc" = "mqtt2tsdb"
-    "mqtt2tsdb-heartbeat" = "mqtt2tsdb"
-    "mqtt2tsdb-info" = "mqtt2tsdb"
-    "notifier" = "notifier"
-    "notifier-alert" = "notifier"
-    "query_ws" = "query_ws"
-    "subscribe" = "subscribe"
-    "subscribe-checker" = "subscribe"
-    "subscribe-reporter" = "subscribe"
+    "account"                        = "account", $null
+    "account-checker"                = "account", "taskType=checker"
+    "authpoint2"                     = "authpoint2", $null
+    "authpoint2-iotptoken"           = "authpoint2", "taskType=iotptoken"
+    "authpoint2-permission"          = "authpoint2", "taskType=authorizer"
+    "authpoint2-permission-replicas" = "authpoint2", "taskType=authorizer-replicas"
+    "authpoint2-backup"              = "authpoint2", "taskType=backup"
+    "dashboard"                      = "dashboard", $null
+    "datacollector"                  = "datacollector", $null
+    "datacollector-cleaner"          = "datacollector", "cronJobSchedule=`"5 0-23/2 * * *`",cleanData=`"1`",updateCounter=`"0`""
+    "event"                          = "event", $null
+    "event-actor"                    = "event", "event_mode=actor"
+    "event-checker"                  = "event", "event_mode=checker"
+    "event-runner"                   = "event", "event_mode=runner"
+    "journal"                        = "journal", $null
+    "k8sworker"                      = "k8sworker", $null
+    "mqtt2tsdb"                      = "mqtt2tsdb", $null
+    "mqtt2tsdb-cache"                = "mqtt2tsdb", "taskType=cache"
+    "mqtt2tsdb-cleaner"              = "mqtt2tsdb", "taskType=cleaner"
+    "mqtt2tsdb-grpc"                 = "mqtt2tsdb", "taskType=grpc"
+    "mqtt2tsdb-heartbeat"            = "mqtt2tsdb", "taskType=heartbeat"
+    "mqtt2tsdb-info"                 = "mqtt2tsdb", "taskType=info"
+    "notifier"                       = "notifier", $null
+    "notifier-alert"                 = "notifier", "taskType=alert"
+    "query_ws"                       = "query_ws", $null
+    "subscribe"                      = "subscribe", $null
+    "subscribe-checker"              = "subscribe", "task_type=checker"
+    "subscribe-reporter"             = "subscribe", "task_type=reporter"
 }
 if ($service -notin $service_dict.Keys ) {
     Write-Host "$service name is invalid. Please try a name from this list. `n";
@@ -38,15 +39,16 @@ if ($service -notin $service_dict.Keys ) {
     Write-Host $show_list;
     exit
 }
-$base_service = $service_dict[$service]
+$base_service = $service_dict[$service][0]
+$config = $service_dict[$service][1]
 
-# for initial release, limit this script to DEV env only.
 if ($null -eq $env) {
     # $env = read-host -Prompt "Please enter 'env' to deploy to" 
     $env = "backend"
 }
+# for initial release, limit this script to DEV env only.
 $env_dict = [ordered]@{
-    "dev" = "backend"
+    "dev"     = "backend"
     "backend" = "backend"
     # "test" = "test"
     # "sys" = "system"
@@ -94,11 +96,28 @@ $data = Get-Content -Path ".\$base_service\Chart.yaml"
 # update app version
 $find = "appVersion:(.*)"  
 $replace = "appVersion: $tag"  
-$updated = $data -replace $find,$replace
+$updated = $data -replace $find, $replace
 
 $updated | Set-Content -Path ".\$base_service\Chart.yaml"
 
-helm upgrade $service .\$base_service\ -n $namespace
+if ($config) {
+    helm upgrade $service .\$base_service\ --set $config -n $namespace --dry-run
+    Write-Host "`nConstructed cmd is...";
+    Write-Host "helm upgrade $service .\$base_service\ --set $config -n $namespace";
+    $confirmation = Read-Host "`nPlease check config. Type 'y' if you want to deploy:"
+    if ($confirmation -eq 'y') {
+        helm upgrade $service .\$base_service\ --set $config -n $namespace
+    }
+}
+else {
+    helm upgrade $service .\$base_service\ -n $namespace --dry-run
+    Write-Host "`nConstructed cmd is...";
+    Write-Host "helm upgrade $service .\$base_service\ -n $namespace";
+    $confirmation = Read-Host "`nPlease check config. Type 'y' if you want to deploy:"
+    if ($confirmation -eq 'y') {
+        helm upgrade $service .\$base_service\ -n $namespace
+    }
+}
 
 # return to caller directory
 Pop-Location;
