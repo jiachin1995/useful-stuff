@@ -1,0 +1,11 @@
+- name: Install python in target node with ansible
+  hosts: test_pc
+  become: true
+  gather_facts: false
+  vars:
+    # skip host checking. warning: allows MITM attacks
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=off'
+  tasks:
+  - name: install python
+    raw: 'apk update && apk add --update --no-cache python3'
+  
