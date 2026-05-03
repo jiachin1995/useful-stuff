@@ -75,8 +75,7 @@ class Node():
             edge_node.indexes.append(char_idx)
 
             # update active point
-            node, _, _ = SuffixTree.active_point
-            SuffixTree.active_point = (node, edge_node, 1)
+            SuffixTree.active_point = (self, edge_node, 1)
             return
 
         else:
@@ -162,8 +161,8 @@ class SuffixTree():
 
 if __name__ == "__main__":
     # text = "banananana"
-    text = "barfoothefoobarman"
+    text = "barfoofoobarthefoobarman"
     st = SuffixTree(text)
     print(st)
 
-    print(st.match_substring("barfoo"))
+    print(st.match_substring("bar"))
