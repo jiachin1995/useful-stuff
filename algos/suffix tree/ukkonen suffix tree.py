@@ -54,6 +54,9 @@ class Node():
                 old_branch_idx = max(ord(SuffixTree.text[self.start]) - 97, -1)
                 node.branches[old_branch_idx] = replace_node
                 
+                # fix start index
+                self.start = split_idx
+
                 # create new node
                 last_idx = self.indexes.pop(-1)
                 replace_node.branches[branch_idx] = Node(char_idx, indexes=[last_idx])
@@ -134,6 +137,7 @@ class SuffixTree():
 
 
 if __name__ == "__main__":
-    text = "banananana"
+    # text = "banananana"
+    text = "barfoothefoobarman"
     st = SuffixTree(text)
     print(st)
