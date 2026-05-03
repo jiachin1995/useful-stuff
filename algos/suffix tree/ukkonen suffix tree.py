@@ -147,13 +147,14 @@ class SuffixTree:
 
     @classmethod
     def clear_remainder(cls, prev_parent, char_idx):
-        if SuffixTree.remainder > 0:
-            # print(cls.instance)
-            # print(SuffixTree.remainder)
-            # input("==== give input2====\n\n")
+        # print(cls.instance)
+        # print(SuffixTree.remainder)
+        # input("==== give input2====\n\n")
 
-            # reset active_point
-            cls.active_point = (cls.root, None, 0)
+        # reset active_point
+        cls.active_point = (cls.root, None, 0)
+
+        if SuffixTree.remainder > 0:
 
             for i in range(char_idx - SuffixTree.remainder + 1, char_idx + 1):
                 curr_node, edge_node, length = cls.active_point
@@ -169,8 +170,8 @@ class SuffixTree:
 
 if __name__ == "__main__":
     # text = "banananana"
-    text = "barfoofoobarthefoobarman"
+    text = "ababaab"
     st = SuffixTree(text)
     print(st)
 
-    print(st.match_substring("bar"))
+    print(st.match_substring("ab"))
