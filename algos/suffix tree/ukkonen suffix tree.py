@@ -29,6 +29,7 @@ class Node():
         # Rule 1: Point all leaf nodes at SuffixTree.END to automatically update edges.
         return SuffixTree.END if self.end is None else self.end
 
+    # =================== builder functions =================== 
     def reset_branches(self):
         self.branches = [None] * 27  # lowercase letters + '$' only
 
@@ -90,6 +91,26 @@ class Node():
             SuffixTree.clear_remainder(self, char_idx)
             return
 
+    # =================== helper functions =================== 
+    def match(self, substring, idx):
+        idx = idx
+        for i in range (self.start, self.get_end()):
+            if SuffixTree.text[i] != substring[idx]:
+                # failed match. return empty list
+                return []
+            
+            idx += 1
+            if idx >= len(substring):
+                return self.indexes
+
+        branch_idx = max(ord(substring[idx]) - 97, -1)
+        edge_node = self.branches[branch_idx]
+        if edge_node:
+            # char exists. continue matching
+            return edge_node.match(substring, idx)
+        else:
+            return []
+
 class SuffixTree():
     def __init__(self, text):
         SuffixTree.instance = self 
@@ -135,9 +156,14 @@ class SuffixTree():
                 curr_node, edge_node, length = cls.active_point
                 edge_node.extend(i, length, prev_parent=prev_parent) if edge_node else curr_node.extend(i, prev_parent=prev_parent)
 
+    def match_substring(self, substring):
+        return self.root.match(substring, 0)
+
 
 if __name__ == "__main__":
     # text = "banananana"
     text = "barfoothefoobarman"
     st = SuffixTree(text)
     print(st)
+
+    print(st.match_substring("barfoo"))
