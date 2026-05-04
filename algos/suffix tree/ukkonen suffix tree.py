@@ -10,8 +10,11 @@ class Node:
         self.indexes = indexes
         self.suffix_link = None
 
+    def get_labels(self):
+        return SuffixTree.text[self.start : self.get_end()]
+
     def custom_repr(self, depth=0):
-        labels = SuffixTree.text[self.start : self.get_end()]
+        labels = self.get_labels()
         # labels += str(self.start) + str(self.end)
         myrepr = f"{labels=}, indexes={self.indexes}, suffix={self.suffix_link.indexes if self.suffix_link else None}"
         list_of_node_repr = [myrepr] + [
@@ -114,6 +117,23 @@ class Node:
         else:
             return []
 
+    def seek_n_extend(self, char_idx, seek_len, prev_parent):
+        if self.end is None or self.start + seek_len < self.end:
+            self.extend(char_idx, seek_len, prev_parent)
+            return
+
+        branch_idx = max(ord(SuffixTree.text[char_idx - seek_len]) - 97, -1)
+        edge_node = self.branches[branch_idx]
+
+        if not edge_node:
+            self.extend(char_idx, seek_len, prev_parent)
+            return
+
+        edge_node.indexes.append(char_idx - seek_len)
+        seek_len_ = seek_len - (self.end - self.start)
+        SuffixTree.active_point = (self, edge_node, seek_len_)
+        return edge_node.seek_n_extend(char_idx, seek_len_, prev_parent)
+
 
 class SuffixTree:
     def __init__(self, text):
@@ -156,24 +176,19 @@ class SuffixTree:
         cls.active_point = (cls.root, None, 0)
 
         if SuffixTree.remainder > 0:
-
-            for i in range(char_idx - SuffixTree.remainder + 1, char_idx + 1):
-                curr_node, edge_node, length = cls.active_point
-                (
-                    edge_node.extend(i, length, prev_parent=prev_parent)
-                    if edge_node
-                    else curr_node.extend(i, prev_parent=prev_parent)
-                )
+            cls.root.seek_n_extend(char_idx, SuffixTree.remainder - 1, prev_parent)
 
     def match_substring(self, substring):
         return self.root.match(substring, 0)
 
 
 if __name__ == "__main__":
-    # text = "banananana"
-    text = "foobarfoobar"
+    # text = "banana"
+    text = "lingmindraboofooowingdingbarrwingmonkeypoundcake"
     st = SuffixTree(text)
     print(st)
 
-    print(st.match_substring("foo"))
-    print(st.match_substring("bar"))
+    # print(st.match_substring("fooo"))
+    # print(st.match_substring("barr"))
+    # print(st.match_substring("wing"))
+    # print(st.match_substring("ding"))
