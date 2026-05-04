@@ -1,14 +1,12 @@
 class Node:
-    def __init__(self, start=0, end=None, indexes=[], branches=None):
-        self.branches = (
-            branches if branches else [None] * 27
-        )  # lowercase letters + '$' only
+    def __init__(self, start=0, end=None, indexes=[]):
+        self.branches = [None] * 27  # lowercase letters + '$' only
 
         # labels start & end idx
         self.start = start
         self.end = end
 
-        # source text matching indexes
+        # matching indexes for source text
         self.indexes = indexes
         self.suffix_link = None
 
@@ -55,9 +53,8 @@ class Node:
                 replace_node.branches[old_branch_idx] = self
 
                 # relink from active node
-                node, _, _ = SuffixTree.active_point
                 old_branch_idx = max(ord(SuffixTree.text[self.start]) - 97, -1)
-                node.branches[old_branch_idx] = replace_node
+                SuffixTree.active_point[0].branches[old_branch_idx] = replace_node
 
                 # fix start index
                 self.start = split_idx
@@ -174,8 +171,9 @@ class SuffixTree:
 
 if __name__ == "__main__":
     # text = "banananana"
-    text = "ababaab"
+    text = "foobarfoobar"
     st = SuffixTree(text)
     print(st)
 
-    print(st.match_substring("ab"))
+    print(st.match_substring("foo"))
+    print(st.match_substring("bar"))
