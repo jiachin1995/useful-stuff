@@ -75,7 +75,11 @@ class Node:
         edge_node = self.branches[branch_idx]
         if edge_node:
             # Rule 3: char exists. Do nothing. Update active point
-            edge_node.indexes.append(char_idx)
+            if self.indexes:
+                edge_node.indexes.append(self.indexes[-1])
+            else:
+                # self is root node
+                edge_node.indexes.append(char_idx)
 
             # update active point
             SuffixTree.active_point = (self, edge_node, 1)
