@@ -69,6 +69,13 @@ class Node:
                 if prev_parent:
                     prev_parent.suffix_link = replace_node
 
+                print("split")
+                print(replace_node.get_labels())
+                print(self.get_labels())
+                print(replace_node.branches[branch_idx].get_labels())
+                print("----")
+                # bug. active_len became 3 instead of 1
+
                 SuffixTree.clear_remainder(replace_node, char_idx)
                 return
 
@@ -117,22 +124,28 @@ class Node:
         else:
             return []
 
-    def seek_n_extend(self, char_idx, seek_len, prev_parent):
+    def seek_n_extend(self, char_idx, first_idx, seek_len, prev_parent):
         if self.end is None or self.start + seek_len < self.end:
+            # print("extend1")
             self.extend(char_idx, seek_len, prev_parent)
             return
 
-        branch_idx = max(ord(SuffixTree.text[char_idx - seek_len]) - 97, -1)
+        edge_len = self.end - self.start
+        branch_idx = max(ord(SuffixTree.text[first_idx + edge_len]) - 97, -1)
         edge_node = self.branches[branch_idx]
 
         if not edge_node:
+            # print("extend2")
             self.extend(char_idx, seek_len, prev_parent)
             return
 
-        edge_node.indexes.append(char_idx - seek_len)
-        seek_len_ = seek_len - (self.end - self.start)
+        # print("splt_extend")
+        edge_node.indexes.append(first_idx)
+        seek_len_ = seek_len
         SuffixTree.active_point = (self, edge_node, seek_len_)
-        return edge_node.seek_n_extend(char_idx, seek_len_, prev_parent)
+        return edge_node.seek_n_extend(
+            char_idx, first_idx + edge_len, seek_len_, prev_parent
+        )
 
 
 class SuffixTree:
@@ -176,7 +189,12 @@ class SuffixTree:
         cls.active_point = (cls.root, None, 0)
 
         if SuffixTree.remainder > 0:
-            cls.root.seek_n_extend(char_idx, SuffixTree.remainder - 1, prev_parent)
+            cls.root.seek_n_extend(
+                char_idx,
+                char_idx - SuffixTree.remainder + 1,
+                SuffixTree.remainder - 1,
+                prev_parent,
+            )
 
     def match_substring(self, substring):
         return self.root.match(substring, 0)
