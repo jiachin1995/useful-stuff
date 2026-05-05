@@ -69,11 +69,11 @@ class Node:
                 if prev_parent:
                     prev_parent.suffix_link = replace_node
 
-                print("split")
-                print(replace_node.get_labels())
-                print(self.get_labels())
-                print(replace_node.branches[branch_idx].get_labels())
-                print("----")
+                # print("split")
+                # print(replace_node.get_labels())
+                # print(self.get_labels())
+                # print(replace_node.branches[branch_idx].get_labels())
+                # print("----")
                 # bug. active_len became 3 instead of 1
 
                 SuffixTree.clear_remainder(replace_node, char_idx)
@@ -140,8 +140,13 @@ class Node:
             return
 
         # print("splt_extend")
-        edge_node.indexes.append(first_idx)
-        seek_len_ = seek_len
+        if self.indexes:
+            edge_node.indexes.append(self.indexes[-1])
+        else:
+            # self is root node
+            edge_node.indexes.append(first_idx)
+
+        seek_len_ = seek_len - edge_len
         SuffixTree.active_point = (self, edge_node, seek_len_)
         return edge_node.seek_n_extend(
             char_idx, first_idx + edge_len, seek_len_, prev_parent
@@ -202,11 +207,10 @@ class SuffixTree:
 
 if __name__ == "__main__":
     # text = "banana"
-    text = "lingmindraboofooowingdingbarrwingmonkeypoundcake"
+    text = "ccaacbbaabcbaddcddbbbddaaaacadbcbbcacdacbc"
     st = SuffixTree(text)
     print(st)
 
-    # print(st.match_substring("fooo"))
-    # print(st.match_substring("barr"))
-    # print(st.match_substring("wing"))
-    # print(st.match_substring("ding"))
+    print(st.match_substring("bca"))
+    print(st.match_substring("bcb"))
+    print(st.match_substring("cda"))
