@@ -1,5 +1,5 @@
 class Node:
-    def __init__(self, start=0, end=None, indexes=[]):
+    def __init__(self, start=0, end=None, indexes=0):
         self.branches = [None] * 27  # lowercase letters + '$' only
 
         # labels start & end idx
@@ -7,8 +7,33 @@ class Node:
         self.end = end
 
         # matching indexes for source text
+        # optimisation. replace with bitmap to eliminate space usage
         self.indexes = indexes
         self.suffix_link = None
+
+    def add_index(self, idx):
+        self.indexes |= 1 << idx
+
+    def get_indexes(self):
+        indexes = []
+        bitmap = self.indexes
+        idx = 0
+        while bitmap > 0:
+            if bitmap & 1:
+                indexes.append(idx)
+
+            idx += 1
+            bitmap >>= 1
+
+        return indexes
+
+    def get_last_index(self, pop=False):
+        # get leftmost 1 bit
+        bit_len = self.indexes.bit_length()
+        if pop:
+            self.indexes &= ~(1 << (bit_len - 1))
+
+        return bit_len - 1
 
     def get_labels(self):
         return SuffixTree.text[self.start : self.get_end()]
@@ -16,7 +41,7 @@ class Node:
     def custom_repr(self, depth=0):
         labels = self.get_labels()
         # labels += str(self.start) + str(self.end)
-        myrepr = f"{labels=}, indexes={self.indexes}, suffix={self.suffix_link.indexes if self.suffix_link else None}"
+        myrepr = f"{labels=}, indexes={self.get_indexes()}, suffix='{self.suffix_link.get_labels() if self.suffix_link else ''}'"
         list_of_node_repr = [myrepr] + [
             node.custom_repr(depth + 1) for node in self.branches if node
         ]
@@ -52,7 +77,7 @@ class Node:
                 # Extend old node
                 split_idx = self.start + active_len
                 old_branch_idx = max(ord(SuffixTree.text[split_idx]) - 97, -1)
-                replace_node = Node(self.start, split_idx, indexes=self.indexes.copy())
+                replace_node = Node(self.start, split_idx, indexes=self.indexes)
                 replace_node.branches[old_branch_idx] = self
 
                 # relink from active node
@@ -63,8 +88,10 @@ class Node:
                 self.start = split_idx
 
                 # create new node
-                last_idx = self.indexes.pop(-1)
-                replace_node.branches[branch_idx] = Node(char_idx, indexes=[last_idx])
+                replace_node.branches[branch_idx] = Node(char_idx)
+                replace_node.branches[branch_idx].add_index(
+                    self.get_last_index(pop=True)
+                )
                 SuffixTree.remainder -= 1
                 if prev_parent:
                     prev_parent.suffix_link = replace_node
@@ -83,10 +110,10 @@ class Node:
         if edge_node:
             # Rule 3: char exists. Do nothing. Update active point
             if self.indexes:
-                edge_node.indexes.append(self.indexes[-1])
+                edge_node.add_index(self.get_last_index())
             else:
                 # self is root node
-                edge_node.indexes.append(char_idx)
+                edge_node.add_index(char_idx)
 
             # update active point
             SuffixTree.active_point = (self, edge_node, 1)
@@ -94,11 +121,13 @@ class Node:
 
         else:
             # Rules 2. char not found. create new node. Clear remainder stack, if any.
-            indexes = [self.indexes[-1] if self.indexes else char_idx]
-            self.branches[branch_idx] = Node(char_idx, indexes=indexes)
+            self.branches[branch_idx] = Node(char_idx)
+            self.branches[branch_idx].add_index(
+                self.get_last_index() if self.indexes else char_idx
+            )
             self.end = char_idx if self.end is None else self.end
             SuffixTree.remainder -= 1
-            if prev_parent and self.indexes:  # root have empty indexes
+            if prev_parent and self.indexes:  # root indexes is 0
                 prev_parent.suffix_link = self
 
             SuffixTree.clear_remainder(self, char_idx)
@@ -114,7 +143,7 @@ class Node:
 
             idx += 1
             if idx >= len(substring):
-                return self.indexes
+                return self.get_indexes()
 
         branch_idx = max(ord(substring[idx]) - 97, -1)
         edge_node = self.branches[branch_idx]
@@ -141,10 +170,10 @@ class Node:
 
         # print("splt_extend")
         if self.indexes:
-            edge_node.indexes.append(self.indexes[-1])
+            edge_node.add_index(self.get_last_index())
         else:
             # self is root node
-            edge_node.indexes.append(first_idx)
+            edge_node.add_index(first_idx)
 
         seek_len_ = seek_len - edge_len
         SuffixTree.active_point = (self, edge_node, seek_len_)
@@ -206,11 +235,12 @@ class SuffixTree:
 
 
 if __name__ == "__main__":
-    # text = "banana"
-    text = "ccaacbbaabcbaddcddbbbddaaaacadbcbbcacdacbc"
+    text = "banana"
+    # text = "abaababbaba"
     st = SuffixTree(text)
     print(st)
 
-    print(st.match_substring("bca"))
-    print(st.match_substring("bcb"))
-    print(st.match_substring("cda"))
+    print(st.match_substring("ab"))
+    print(st.match_substring("ba"))
+    print(st.match_substring("wing"))
+    print(st.match_substring("ding"))
