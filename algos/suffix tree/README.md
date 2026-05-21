@@ -1,0 +1,1 @@
+My implementation of Ukkonen's algorithm for suffix trees
